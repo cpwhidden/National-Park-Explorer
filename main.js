@@ -1,35 +1,4 @@
 // Refactor to separate model file
-var nationalParkList = [{
-	name : 'Acadia',
-	lat : 44.35,
-	long : -68.21
-	},
-	{
-		name : 'American Samoa',
-		lat : -14.25,
-		long : -170.68
-	},
-	{
-		name : 'Arches',
-		lat : 38.68,
-		long : -109.57
-	},
-	{
-		name : 'Badlands',
-		lat : 43.75,
-		long : -102.50
-	},
-	{
-		name : 'Big Bend',
-		lat : 29.25,
-		long : -103.25
-	},
-	{
-		name : 'Biscayne',
-		lat : 25.65,
-		long : -80.08
-	}];
-
 var Park = function(name, lat, long) {
 	this.name = name;
 	this.lat = lat;
@@ -37,7 +6,13 @@ var Park = function(name, lat, long) {
 
 }
 
-var apis = [];
+var nationalParkList = [new Park('Acadia', 44.35, -68.21),
+						new Park('American Samoa', -14.25, -170.68),
+						new Park('Arches', 38.68, -109.57),
+						new Park('Badlands', 43.75, -102.50),
+						new Park('Big Bend', 29.25, -103.25),
+						new Park('Biscayne', 25.65, -80.08)];
+
 
 var API = function(name, enabled, defaultTemplate, request) {
 	this.name = ko.observable(name);
@@ -45,6 +20,8 @@ var API = function(name, enabled, defaultTemplate, request) {
 	this.request = request;
 	this.htmlString = ko.observable(defaultTemplate);
 }
+
+var apis = [];
 
 var Model = function() {
 	var self = this;
