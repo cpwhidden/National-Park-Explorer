@@ -13,12 +13,10 @@
 				<button class="nav-btn">Settings</button>
 				<h1 id="map-subject" data-bind="text: currentSearch">US National Parks</h1>
 			</div>
-<!-- 			<input id="input-box" data-bind="value: currentSearch"></input>
-			<button class="search-btn">Search</button> -->
 			<div id="filter-menu">
 				<input id="filter-box" placeholder="Filter Parks..." data-bind="value: filterString, valueUpdate: ['afterkeydown']"></input>
 				<div id="filter-list" data-bind="foreach: filteredParks">
-					<div class="filtered-park">
+					<div class="filtered-park" data-bind="click: $root.parkSelected">
 						<h2 data-bind="text: name"></h2>
 					</div>
 				</div>

@@ -26,6 +26,7 @@ html, body {
 	z-index: 99;
 	width: 400px;
 	max-width: 100%;
+	max-height: 100%;
 }
 
 #map-subject {
@@ -47,6 +48,10 @@ html, body {
 
 .hidden {
 	display: none;
+}
+
+#filter-list {
+	overflow: scroll;
 }
 
 .filtered-park h2 {

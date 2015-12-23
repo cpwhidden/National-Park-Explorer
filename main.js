@@ -61,14 +61,16 @@ var ViewModel = function() {
 	this.model = ko.observable(new Model());
 	this.markers = [];
 	var self = this;
-	var map;
+	var map, infoWindow;
+
+	this.infoWindowContent = '<div><h3>Hello, World</h3></div>';
 
 	this.initMap = function() {
 		self.map = new google.maps.Map(document.getElementById('map'));
 
 		self.adjustBounds();
 		self.createMarkers(self.model().filteredParks());
-
+		self.infoWindow = new google.maps.InfoWindow({content: self.infoWindowContent});
 	}
 
 	this.adjustBounds = function() {
@@ -84,11 +86,16 @@ var ViewModel = function() {
 	}
 
 	this.createMarker = function(title, lat, long) {
-		self.markers.push(new google.maps.Marker({
+		var marker = new google.maps.Marker({
 			title: title,
 			position: new google.maps.LatLng(lat, long),
 			map: self.map
-		}))
+		});
+		marker.addListener('click', function() {
+			self.bounceMarker(marker);
+			self.infoWindow.open(self.map, marker);
+		});
+		self.markers.push(marker);
 	}
 
 	this.createMarkers = function(filteredParks) {
@@ -96,6 +103,33 @@ var ViewModel = function() {
 			var park = filteredParks[i];
 			self.createMarker(park.name, park.lat, park.long);
 		}
+	}
+
+	this.parkSelected = function(park) {
+		var marker = self.getMarkerForPark(park);
+		self.bounceMarker(marker);
+	}
+
+	this.getMarkerForPark = function(park) {
+		for (i in self.markers) {
+			if (self.markers[i].title == park.name) {
+				return self.markers[i];
+			}
+		}
+	}
+
+	this.getParkForMarker = function(marker) {
+		for (i in self.markers) {
+			if (self.markers[i].title == park.name) {
+				self.bounceMarker(self.markers[i]);
+				break;
+			}
+		}
+	}
+
+	this.bounceMarker = function(marker) {
+		marker.setAnimation(google.maps.Animation.BOUNCE);
+		setTimeout(function(){ marker.setAnimation(null); }, 750);
 	}
 
 	// Redraw all markers when the filteredParks list changes.
