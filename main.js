@@ -149,11 +149,11 @@ var ViewModel = function() {
 	var map, infoWindow;
 
 	this.infoWindowContent = ko.pureComputed(function() {
-		var htmlString = '<div id="info-window-content">';
+		var htmlString = '<div id="info-window-content"><h1 class="park-info-window-title">' + self.currentParkName + '<small>National Park</small></h1>';
 		var apiList = self.model().apiList();
 		for (api in apiList) {
 			if (apiList[api].enabled() == true) {
-				htmlString += '<h1 class="park-info-window-title">' + self.currentParkName + '<small>National Park</small></h1><div class="api-item info-window-container">';
+				htmlString += '<div class="api-item info-window-container">';
 				htmlString += apiList[api].htmlString();
 				htmlString += '</div>';
 			}
@@ -199,6 +199,9 @@ var ViewModel = function() {
 		marker.addListener('click', function() {
 			self.markerSelected(marker);
 		});
+		marker.addListener('dblclick', function() {
+			self.map.fitBounds({west: marker.getPosition().lng() - 1, east: marker.getPosition().lng() + 1, north: marker.getPosition().lat() + 1, south: marker.getPosition().lat() - 1});
+		})
 		self.markers.push(marker);
 	}
 

@@ -11,7 +11,7 @@
 		</div>
 		<div id="nav-area">
 			<div id="nav-header">
-				<button class="nav-btn" onclick="vm.menuClicked()">Settings</button>
+				<img id="nav-btn" src="images/hamburger.png" onclick="vm.menuClicked()"></img>
 				<h1 id="map-subject" data-bind="text: currentSearch">US National Parks</h1>
 			</div>
 			<div id="filter-menu">
@@ -21,7 +21,8 @@
 						<h2 data-bind="text: name"></h2>
 					</div>
 				</div>
-				<hr id="api-hr">
+<!-- 				<hr id="api-hr"> -->
+				<h2 id="sources-header">3rd Party Sources</h2>
 				<div class="api-list" data-bind="foreach: apiList">
 					<div class="api-item">
 						<img class="api-icon" src="" data-bind="attr: {src: iconURL, alt: name}"></img>
