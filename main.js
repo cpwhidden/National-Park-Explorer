@@ -163,7 +163,9 @@ var ViewModel = function() {
 	})
 
 	this.initMap = function() {
-		self.map = new google.maps.Map(document.getElementById('map'));
+		self.map = new google.maps.Map(document.getElementById('map'), {
+			mapTypeControlOptions: {position: google.maps.ControlPosition.TOP_RIGHT}
+		});
 
 		self.adjustBounds();
 		self.createMarkers(self.model().filteredParks());

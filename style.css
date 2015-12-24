@@ -41,12 +41,12 @@ h1 small {
 	background-color: rgba(235,235,235,255);
 	opacity: 0.8;
 	position: absolute;
-	top: 25px;
-	left: 15px;
+	top: 10px;
+	left: 10px;
 	z-index: 99;
 	width: 350px;
 	max-width: 100%;
-	height: calc(100% - 50px);
+	height: calc(100% - 35px);
 	overflow: scroll;
 }
 
