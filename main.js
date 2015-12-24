@@ -69,28 +69,25 @@ var nationalParkList = [new Park('Acadia', 44.35, -68.21),
 						new Park('Zion', 37.3, -113.05)];
 
 // Data structure to describe API requests
-var API = function(name, enabled, iconURL, request) {
+var API = function(name, enabled, iconURL, defaultHTML, request) {
 	var self = this;
 	this.name = ko.observable(name);
 	this.enabled = ko.observable(enabled);
 	this.iconURL = iconURL;
 	this.request = request;
 	this.requestToken;
-	this.defaultHTML = '<div class="api-header"><img class="api-icon" src="' + this.iconURL + '"></img><h2>Waiting for photos</h2><hr></div>';
+	this.defaultHTML = defaultHTML;
 	this.htmlString = ko.observable(self.defaultHTML);
 }
 
-var apis = [new API('Flickr', true, 'images/flickr.png', function(lat, lon) {
+var apis = [new API('Flickr', true, 'images/flickr.png', '<div class="api-header"><img class="api-icon" src="' + this.iconURL + '"></img><h2>Waiting for photos</h2><hr></div>', function(lat, lon) {
 	var self = this;
 	self.requestToken = $.getJSON('https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=6292fdf93c1a3e4947455f9d710fd0d2&format=json&nojsoncallback=1&lat=' + lat + '&lon=' + lon + '&radius=10', function(data){
 		// Inject HTML into api div
-		console.log(data);
 		if (data.photos.photo.length > 0) {
 			var pictureCount = Math.min(data.photos.photo.length, 5);
-			console.log(pictureCount);
 			var html = '<div id="flickr-photos">';
 			for (var i = 0; i < pictureCount; i++) {
-				console.log(i);
 				var farm = data.photos.photo[i].farm;
 				var server = data.photos.photo[i].server;
 				var id = data.photos.photo[i].id;
@@ -99,7 +96,6 @@ var apis = [new API('Flickr', true, 'images/flickr.png', function(lat, lon) {
 			}
 			html += '</div>';
 			self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Flickr</h2></div><hr>' + html);
-			console.log(self.htmlString());
 		}
 	}).error(function(jqXHR, status, error) {
 		self.htmlString('Error getting photos');
@@ -275,6 +271,7 @@ var ViewModel = function() {
 
 	self.infoWindowContent.subscribe(function(newValue) {
 		self.infoWindow.setContent(newValue);
+
 	});
 
 	self.model().apiList()[0].request(self.model().filteredParks()[0].lat, self.model().filteredParks()[0].long);
