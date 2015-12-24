@@ -153,3 +153,11 @@ h2 {
 	margin: auto;
 	display: block;
 }
+
+.hidden {
+	display: none;
+}
+
+.collapsed {
+	height: auto !important;
+}

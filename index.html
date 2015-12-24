@@ -3,6 +3,7 @@
 <head>
 	<link rel="stylesheet" type"text/css" href="style.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="UTF-8">
 </head>
 <body>
 	<div class="wrapper" data-bind="with: model">
@@ -10,7 +11,7 @@
 		</div>
 		<div id="nav-area">
 			<div id="nav-header">
-				<button class="nav-btn">Settings</button>
+				<button class="nav-btn" onclick="vm.menuClicked()">Settings</button>
 				<h1 id="map-subject" data-bind="text: currentSearch">US National Parks</h1>
 			</div>
 			<div id="filter-menu">

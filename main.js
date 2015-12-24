@@ -254,6 +254,11 @@ var ViewModel = function() {
 		}
 	}
 
+	this.menuClicked = function() {
+		$('#filter-menu').toggleClass('hidden');
+		$('#nav-area').toggleClass('collapsed');
+	}
+
 	// Redraw all markers when the filteredParks list changes.
 	self.model().filteredParks.subscribe(function(newValue) {
 		if (self.map != undefined) {
