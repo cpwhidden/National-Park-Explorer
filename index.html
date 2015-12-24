@@ -20,7 +20,13 @@
 						<h2 data-bind="text: name"></h2>
 					</div>
 				</div>
-				<div class="api-menu">
+				<hr id="api-hr">
+				<div class="api-list" data-bind="foreach: apiList">
+					<div class="api-item">
+						<img class="api-icon" src="" data-bind="attr: {src: iconURL, alt: name}"></img>
+						<h2 data-bind="text: name"></h2>
+						<input class="api-check" type="checkbox" data-bind="checked: enabled">
+					</div>
 				</div>
 			</div>
 		</div>
