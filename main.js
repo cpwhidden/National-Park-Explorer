@@ -137,8 +137,9 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 			}),
 			new API('Foursquare', true, 'images/foursquare.png', 'location', function(lat, lon) {
 				var self = this;
-				self.requestToken = $.getJSON('https://api.foursquare.com/v2/venues/search?intent=browse&client_id=5DQOVDCBMLP5BWR0KLMMMR3FSNMYGQ3YLO5RLT1M3SSKGVCS&client_secret=2S33ZUR25W0JXC3YY0VAVPX0XCPDH032QDTZGFIDNCWAOXF1&v=20130815&category=52e81612bcbc57f1066b7a21,4bf58dd8d48988d1e2941735,52e81612bcbc57f1066b7a22,4bf58dd8d48988d1df941735,4bf58dd8d48988d1e4941735,50aaa49e4b90af0d42d5de11,52e81612bcbc57f1066b7a12,52e81612bcbc57f1066b7a0f,52e81612bcbc57f1066b7a23,4bf58dd8d48988d15a941735,4bf58dd8d48988d1e0941735,4bf58dd8d48988d160941735,50aaa4314b90af0d42d5de10,4bf58dd8d48988d161941735,4bf58dd8d48988d15d941735,4eb1d4d54b900d56c88a45fc,52e81612bcbc57f1066b7a21,52e81612bcbc57f1066b7a13,4bf58dd8d48988d162941735,52e81612bcbc57f1066b7a14,4bf58dd8d48988d163941735,4eb1d4dd4b900d56c88a45fd,50328a4b91d4c4b30a586d6b,4bf58dd8d48988d165941735,4bf58dd8d48988d1e9941735,4bf58dd8d48988d159941735,52e81612bcbc57f1066b7a24,5032848691d4c4b30a586d61&radius=5000&ll=' + lat + ',' + lon, function(data) {
+				self.requestToken = $.getJSON('https://api.foursquare.com/v2/venues/search?intent=browse&client_id=5DQOVDCBMLP5BWR0KLMMMR3FSNMYGQ3YLO5RLT1M3SSKGVCS&client_secret=2S33ZUR25W0JXC3YY0VAVPX0XCPDH032QDTZGFIDNCWAOXF1&v=20130815&category=52e81612bcbc57f1066b7a21,4bf58dd8d48988d1e2941735,52e81612bcbc57f1066b7a22,4bf58dd8d48988d1df941735,4bf58dd8d48988d1e4941735,50aaa49e4b90af0d42d5de11,52e81612bcbc57f1066b7a12,52e81612bcbc57f1066b7a0f,52e81612bcbc57f1066b7a23,4bf58dd8d48988d15a941735,4bf58dd8d48988d1e0941735,4bf58dd8d48988d160941735,50aaa4314b90af0d42d5de10,4bf58dd8d48988d161941735,4bf58dd8d48988d15d941735,4eb1d4d54b900d56c88a45fc,52e81612bcbc57f1066b7a21,52e81612bcbc57f1066b7a13,4bf58dd8d48988d162941735,52e81612bcbc57f1066b7a14,4bf58dd8d48988d163941735,4eb1d4dd4b900d56c88a45fd,50328a4b91d4c4b30a586d6b,4bf58dd8d48988d165941735,4bf58dd8d48988d1e9941735,4bf58dd8d48988d159941735,52e81612bcbc57f1066b7a24,5032848691d4c4b30a586d61&radius=8000&ll=' + lat + ',' + lon, function(data) {
 					// Inject HTML into API div
+					console.log(data);
 					var html = '<div id="foursquare-venues">';
 					var venues = data.response.venues;
 					if (venues.length > 0) {
@@ -156,7 +157,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 					} else {
 						html += '<h3>No Foursquare results';
 					}
-					self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Foursquare spots</h2></div>' + html);
+					self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Foursquare check-in spots</h2></div>' + html);
 				}).error(function(jqXHR, status, error) {
 					self.htmlString('Error getting Foursquare park info');
 				});
