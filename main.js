@@ -1,3 +1,5 @@
+'use strict'
+
 // Refactor to separate model file
 var Park = function(name, lat, long) {
 	this.name = name;
@@ -70,39 +72,67 @@ var nationalParkList = [new Park('Acadia', 44.35, -68.21),
 
 // Data structure to describe API requests
 // TODO: cache API results for each park.
-var API = function(name, enabled, iconURL, request) {
+var API = function(name, enabled, iconURL, requestParamType, request) {
 	var self = this;
 	this.name = ko.observable(name);
 	this.enabled = ko.observable(enabled);
 	this.iconURL = iconURL;
-	this.request = request;
+	self.request = request;
 	this.requestToken;
+	this.requestTimeout;
+	this.requestParamType = requestParamType;
 	this.defaultHTML = '<div class="api-header"><img class="api-icon" src="' + this.iconURL + '"></img><h2 style="font-weight:lighter;">Making request...</h2></div>';
 	this.htmlString = ko.observable(self.defaultHTML);
 }
 
-var apis = [new API('Flickr', true, 'images/flickr.png', function(lat, lon) {
-	var self = this;
-	self.requestToken = $.getJSON('https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=6292fdf93c1a3e4947455f9d710fd0d2&format=json&nojsoncallback=1&lat=' + lat + '&lon=' + lon + '&radius=10', function(data){
-		// Inject HTML into api div
-		if (data.photos.photo.length > 0) {
-			var pictureCount = Math.min(data.photos.photo.length, 5);
-			var html = '<div id="flickr-photos">';
-			// TODO: Randomize photos selected from array
-			for (var i = 0; i < pictureCount; i++) {
-				var farm = data.photos.photo[i].farm;
-				var server = data.photos.photo[i].server;
-				var id = data.photos.photo[i].id;
-				var secret = data.photos.photo[i].secret;
-				html += '<img src=https://farm' + farm + '.staticflickr.com/' + server + '/' + id + '_' + secret + '.jpg</img>';
-			}
-			html += '</div>';
-			self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Flickr</h2></div>' + html);
-		}
-	}).error(function(jqXHR, status, error) {
-		self.htmlString('Error getting photos');
-	});
-})];
+var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(lat, lon) {
+				var self = this;
+				// self.htmlString(self.defaultHTML);
+				self.requestToken = $.getJSON('https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=6292fdf93c1a3e4947455f9d710fd0d2&format=json&nojsoncallback=1&lat=' + lat + '&lon=' + lon + '&radius=10', function(data){
+					// Inject HTML into api div
+					if (data.photos.photo.length > 0) {
+						var pictureCount = Math.min(data.photos.photo.length, 5);
+						var html = '<div id="flickr-photos">';
+						// TODO: Randomize photos selected from array
+						for (var i = 0; i < pictureCount; i++) {
+							var farm = data.photos.photo[i].farm;
+							var server = data.photos.photo[i].server;
+							var id = data.photos.photo[i].id;
+							var secret = data.photos.photo[i].secret;
+							html += '<img src=https://farm' + farm + '.staticflickr.com/' + server + '/' + id + '_' + secret + '.jpg</img>';
+						}
+						html += '</div>';
+						self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Flickr</h2></div>' + html);
+					}
+				}).error(function(jqXHR, status, error) {
+					self.htmlString('Error getting photos');
+				});
+			}),
+			new API('Wikipedia', true, 'images/wikipedia.png', 'name', function(name) {
+				var self = this;
+				self.requestTimeout = setTimeout(function() {
+			        self.htmlString('<h3>Failed to get Wiki articles</h3>');
+			    }, 8000);
+				self.requestToken = $.ajax(
+					'https://en.wikipedia.org/w/api.php?&action=query&srsearch=' + name + '&list=search&format=json', {
+					dataType: 'jsonp',
+					success: function(data, status, request) {
+						clearTimeout(self.requestTimeout);
+						var html = '<div id="wiki-articles">'
+						var search = data.query.search;
+						var min = Math.min(data.query.search.length, 5);
+						for (var i = 0; i < min; i++) {
+							var title = search[i].title;
+							html += '<a display="block"href="https://en.wikipedia.org/w/index.php?title="' + title + '>' + title + '</a>';
+						}
+						html += '</div>';
+						self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Wikipedia</h2></div>' + html);
+					}
+
+				}).error(function() { 
+					self.htmlString('<h3>Error getting Wikipedia articles</h3>');
+				})
+			})];
 
 var Model = function() {
 	var self = this;
@@ -125,7 +155,7 @@ var Model = function() {
 		}
 		var lats = [];
 		var longs = [];
-		for (i in list) {
+		for (var i in list) {
 			lats.push(list[i].lat);
 			longs.push(list[i].long);
 		}
@@ -149,7 +179,7 @@ var ViewModel = function() {
 	this.infoWindowContent = ko.pureComputed(function() {
 		var htmlString = '<div id="info-window-content"><h1 class="park-info-window-title">' + self.currentPark() + '<small>National Park</small></h1>';
 		var apiList = self.model().apiList();
-		for (api in apiList) {
+		for (var api in apiList) {
 			if (apiList[api].enabled() == true) {
 				htmlString += '<div class="api-item info-window-container">';
 				htmlString += apiList[api].htmlString();
@@ -168,7 +198,7 @@ var ViewModel = function() {
 
 		// Reset bounds if zoomed out too far
 		google.maps.event.addListener(self.map, 'zoom_changed', function() {
-		    listener = 
+		    var listener = 
 		        google.maps.event.addListener(self.map, 'bounds_changed', function(event) {
 		            if (this.getZoom() < 2) {
 		                self.adjustBounds();
@@ -196,7 +226,7 @@ var ViewModel = function() {
 	}
 
 	this.removeAllMarkers = function() {
-		for (marker in self.markers) {
+		for (var marker in self.markers) {
 			self.markers[marker].setMap(null);
 		}
 		self.markers = [];
@@ -218,7 +248,7 @@ var ViewModel = function() {
 	}
 
 	this.createMarkers = function(filteredParks) {
-		for (i in filteredParks) {
+		for (var i in filteredParks) {
 			var park = filteredParks[i];
 			self.createMarker(park.name, park.lat, park.long);
 		}
@@ -236,7 +266,7 @@ var ViewModel = function() {
 	}
 
 	this.getMarkerForPark = function(park) {
-		for (i in self.markers) {
+		for (var i in self.markers) {
 			if (self.markers[i].title == park.name) {
 				return self.markers[i];
 			}
@@ -245,7 +275,7 @@ var ViewModel = function() {
 
 	this.getParkForMarker = function(marker) {
 		var parkList = self.model().parkList();
-		for (i in parkList) {
+		for (var i in parkList) {
 			if (parkList[i].name == marker.title) {
 				return parkList[i];
 			}
@@ -261,12 +291,20 @@ var ViewModel = function() {
 		var park = self.getParkForMarker(marker);
 		self.currentPark(park.name);
 		var apiList = self.model().apiList();
-		for (api in apiList) {
+		for (var api in apiList) {
 			if (apiList[api].requestToken) {
 				apiList[api].requestToken.abort();
 			}
-			apiList[api].htmlString(apiList[api].defaultHTML);
-			apiList[api].request(park.lat, park.long);
+			if (apiList[api].requestTimeout) {
+				clearTimeout(apiList[api].requestTimeout);
+			}
+			var defHTML = apiList[api].defaultHTML;
+			apiList[api].htmlString(defHTML);
+			if (apiList[api].requestParamType == 'location') {
+				apiList[api].request(park.lat, park.long);
+			} else if (apiList[api].requestParamType == 'name') {
+				apiList[api].request(park.name);
+			}
 		}
 	}
 
@@ -304,13 +342,7 @@ var vm = new ViewModel();
 ko.applyBindings(vm);
 
 
-// var resizeMiddle = function() {
-//     var h = $('#nav-area').height() - $('#nav-header').height() - $('#filter-box').height() - $('#api-hr').height() - $('#api-list').height();
-//     h = h > 300 ? h : 300;
-//     $('#filter-list').height(h);
-// }
 
-// $(document).ready(resizeMiddle);
-// $(window).resize(resizeMiddle);
+// Wikipedia icon: http://www.iconarchive.com/show/popular-sites-icons-by-sykonist/Wikipedia-icon.html
 
 	
