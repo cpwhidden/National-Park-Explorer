@@ -85,6 +85,7 @@ var API = function(name, enabled, iconURL, requestParamType, request) {
 	this.htmlString = ko.observable(self.defaultHTML);
 }
 
+// TODO: rewrite with HTML templates instead of concatenating strings
 var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(lat, lon) {
 				var self = this;
 				// self.htmlString(self.defaultHTML);
@@ -102,7 +103,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 							html += '<img src=https://farm' + farm + '.staticflickr.com/' + server + '/' + id + '_' + secret + '.jpg</img>';
 						}
 						html += '</div>';
-						self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Flickr</h2></div>' + html);
+						self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Flickr photos</h2></div>' + html);
 					}
 				}).error(function(jqXHR, status, error) {
 					self.htmlString('Error getting photos');
@@ -126,12 +127,39 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 							html += '<a display="block"href="https://en.wikipedia.org/w/index.php?title="' + title + '>' + title + '</a>';
 						}
 						html += '</div>';
-						self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Wikipedia</h2></div>' + html);
+						self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Wikipedia articles</h2></div>' + html);
 					}
 
 				}).error(function() { 
 					self.htmlString('<h3>Error getting Wikipedia articles</h3>');
 				})
+			}),
+			new API('Foursquare', true, 'images/foursquare.png', 'location', function(lat, lon) {
+				var self = this;
+				self.requestToken = $.getJSON('https://api.foursquare.com/v2/venues/search?intent=browse&client_id=5DQOVDCBMLP5BWR0KLMMMR3FSNMYGQ3YLO5RLT1M3SSKGVCS&client_secret=2S33ZUR25W0JXC3YY0VAVPX0XCPDH032QDTZGFIDNCWAOXF1&v=20130815&category=52e81612bcbc57f1066b7a21,4bf58dd8d48988d1e2941735,52e81612bcbc57f1066b7a22,4bf58dd8d48988d1df941735,4bf58dd8d48988d1e4941735,50aaa49e4b90af0d42d5de11,52e81612bcbc57f1066b7a12,52e81612bcbc57f1066b7a0f,52e81612bcbc57f1066b7a23,4bf58dd8d48988d15a941735,4bf58dd8d48988d1e0941735,4bf58dd8d48988d160941735,50aaa4314b90af0d42d5de10,4bf58dd8d48988d161941735,4bf58dd8d48988d15d941735,4eb1d4d54b900d56c88a45fc,52e81612bcbc57f1066b7a21,52e81612bcbc57f1066b7a13,4bf58dd8d48988d162941735,52e81612bcbc57f1066b7a14,4bf58dd8d48988d163941735,4eb1d4dd4b900d56c88a45fd,50328a4b91d4c4b30a586d6b,4bf58dd8d48988d165941735,4bf58dd8d48988d1e9941735,4bf58dd8d48988d159941735,52e81612bcbc57f1066b7a24,5032848691d4c4b30a586d61&radius=5000&ll=' + lat + ',' + lon, function(data) {
+					// Inject HTML into API div
+					var html = '<div id="foursquare-venues">';
+					console.log(data);
+					var venues = data.response.venues;
+					if (venues.length > 0) {
+						var venueCount = Math.min(venues.length, 5);
+						for (var i = 0; i < venueCount; i++) {
+							var name = venues[i].name;
+							var id = venues[i].id;
+							if (venues[i].url) {
+								html += '<a display="block" href="' + venues[i].url + '">' + venues[i].name + '</a>';
+							} else {
+								html += '<a display="block">' + venues[i].name + '</a>';
+							}
+						}
+						html += '</div>';
+					} else {
+						html += '<h3>No Foursquare results';
+					}
+					self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Foursquare venues</h2></div>' + html);
+				}).error(function(jqXHR, status, error) {
+					self.htmlString('Error getting Foursquare park info');
+				});
 			})];
 
 var Model = function() {
@@ -342,7 +370,7 @@ var vm = new ViewModel();
 ko.applyBindings(vm);
 
 
-
+// Icon credits:
 // Wikipedia icon: http://www.iconarchive.com/show/popular-sites-icons-by-sykonist/Wikipedia-icon.html
-
+// Foursquare icon: https://foursquare.com/about/logos
 	
