@@ -25,9 +25,9 @@
 				<h2 id="sources-header">3rd Party Sources</h2>
 				<div class="api-list" data-bind="foreach: apiList">
 					<div class="api-item">
+						<input class="api-check" type="checkbox" data-bind="checked: enabled">
 						<img class="api-icon" src="" data-bind="attr: {src: iconURL, alt: name}"></img>
 						<h2 data-bind="text: name"></h2>
-						<input class="api-check" type="checkbox" data-bind="checked: enabled">
 					</div>
 				</div>
 			</div>

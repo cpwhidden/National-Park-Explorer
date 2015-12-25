@@ -116,13 +116,15 @@ h2 {
 
 .api-list {
 	display: flex;
+	flex-wrap: wrap;
 	overflow: scroll;
-	min-height: 50px;
+	min-height: 75px;
 }
 
 .api-list .api-item {
 	display: flex;
-	justify-content: center;
+	justify-content: flex-start;
+	padding-left: 5px;
 }
 
 .api-header > * {
@@ -149,6 +151,7 @@ h2 {
 
 .api-item {
 	width: 50%;
+	box-sizing: border-box;
 	display: block;
 	outline-color: #EEEEEE;
 	outline-style: solid;
@@ -157,6 +160,7 @@ h2 {
 
 .api-item h2 {
 	color: #222;
+	font-size: 20px;
 }
 
 .api-item > *{
@@ -174,7 +178,6 @@ h2 {
 }
 
 #info-window-content {
-	max-width: calc(document.width);
 	max-width: 400px;
 	max-height: 500px;
 	overflow: scroll;
@@ -190,10 +193,12 @@ h2 {
 
 #flickr-photos {
 	max-width: 100%;
+	margin: 0;
 }	
 
 #flickr-photos img {
 	max-height: 400px;
+	max-width: 100%;
 	margin: auto;
 	display: block;
 }
