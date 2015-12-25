@@ -69,6 +69,7 @@ var nationalParkList = [new Park('Acadia', 44.35, -68.21),
 						new Park('Zion', 37.3, -113.05)];
 
 // Data structure to describe API requests
+// TODO: cache API results for each park.
 var API = function(name, enabled, iconURL, request) {
 	var self = this;
 	this.name = ko.observable(name);
@@ -87,6 +88,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', function(lat, lon) {
 		if (data.photos.photo.length > 0) {
 			var pictureCount = Math.min(data.photos.photo.length, 5);
 			var html = '<div id="flickr-photos">';
+			// TODO: Randomize photos selected from array
 			for (var i = 0; i < pictureCount; i++) {
 				var farm = data.photos.photo[i].farm;
 				var server = data.photos.photo[i].server;
@@ -139,13 +141,13 @@ var Model = function() {
 
 var ViewModel = function() {
 	this.model = ko.observable(new Model());
+	this.currentPark = ko.observable("");	
 	this.markers = [];
 	var self = this;
-	self.currentParkName;
 	var map, infoWindow;
 
 	this.infoWindowContent = ko.pureComputed(function() {
-		var htmlString = '<div id="info-window-content"><h1 class="park-info-window-title">' + self.currentParkName + '<small>National Park</small></h1>';
+		var htmlString = '<div id="info-window-content"><h1 class="park-info-window-title">' + self.currentPark() + '<small>National Park</small></h1>';
 		var apiList = self.model().apiList();
 		for (api in apiList) {
 			if (apiList[api].enabled() == true) {
@@ -161,6 +163,18 @@ var ViewModel = function() {
 	this.initMap = function() {
 		self.map = new google.maps.Map(document.getElementById('map'), {
 			mapTypeControlOptions: {position: google.maps.ControlPosition.TOP_RIGHT}
+		});
+
+
+		// Reset bounds if zoomed out too far
+		google.maps.event.addListener(self.map, 'zoom_changed', function() {
+		    listener = 
+		        google.maps.event.addListener(self.map, 'bounds_changed', function(event) {
+		            if (this.getZoom() < 2) {
+		                self.adjustBounds();
+		            }
+		        google.maps.event.removeListener(listener);
+		    });
 		});
 
 		self.adjustBounds();
@@ -217,8 +231,8 @@ var ViewModel = function() {
 
 	this.markerSelected = function(marker) {
 		self.bounceMarker(marker);
+		self.updateInfoWindowContent(marker);		
 		self.infoWindow.open(self.map, marker);
-		self.updateInfoWindowContent(marker);
 	}
 
 	this.getMarkerForPark = function(park) {
@@ -245,11 +259,12 @@ var ViewModel = function() {
 
 	this.updateInfoWindowContent = function(marker) {
 		var park = self.getParkForMarker(marker);
-		self.currentParkName = park.name;
+		self.currentPark(park.name);
 		var apiList = self.model().apiList();
 		for (api in apiList) {
-			apiList[api].requestToken.abort();
-			console.log(apiList[api]);
+			if (apiList[api].requestToken) {
+				apiList[api].requestToken.abort();
+			}
 			apiList[api].htmlString(apiList[api].defaultHTML);
 			apiList[api].request(park.lat, park.long);
 		}
@@ -279,10 +294,7 @@ var ViewModel = function() {
 
 	self.infoWindowContent.subscribe(function(newValue) {
 		self.infoWindow.setContent(newValue);
-
 	});
-
-	self.model().apiList()[0].request(self.model().filteredParks()[0].lat, self.model().filteredParks()[0].long);
 }
 
 // Initialize ViewModel
