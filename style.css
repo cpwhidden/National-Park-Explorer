@@ -205,7 +205,8 @@ h2 {
 }
 
 #sources-header {
-	text-align: center;
+	text-align: right;
 	color: #222;
 	font-weight: 500;
+	margin-right: 15px;
 }
