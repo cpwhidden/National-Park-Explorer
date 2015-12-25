@@ -71,7 +71,6 @@ var nationalParkList = [new Park('Acadia', 44.35, -68.21),
 						new Park('Zion', 37.3, -113.05)];
 
 // Data structure to describe API requests
-// TODO: cache API results for each park.
 var API = function(name, enabled, iconURL, requestParamType, request) {
 	var self = this;
 	this.name = ko.observable(name);
@@ -79,7 +78,6 @@ var API = function(name, enabled, iconURL, requestParamType, request) {
 	this.iconURL = iconURL;
 	self.request = request;
 	this.requestTokens = {};
-	this.requestTimeout;
 	this.cache = {};
 	this.requestParamType = requestParamType;
 	this.defaultHTML = '<div class="api-header"><img class="api-icon" src="' + this.iconURL + '"></img><h2 style="font-weight:lighter;">Making request...</h2></div>';
@@ -89,12 +87,14 @@ var API = function(name, enabled, iconURL, requestParamType, request) {
 // TODO: rewrite with HTML templates instead of concatenating strings
 var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(lat, lon) {
 				var self = this;
+				// Make key for request token dictionary and result data cache
 				var key = lat + '$' + lon;
 				self.requestTokens[key] = $.getJSON('https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=6292fdf93c1a3e4947455f9d710fd0d2&format=json&nojsoncallback=1&lat=' + lat + '&lon=' + lon + '&radius=10', function(data){
 					// Inject HTML into api div
 					var html = '<div id="flickr-photos">';
 					if (data.photos.photo.length > 0) {
 						var pictureCount = Math.min(data.photos.photo.length, 5);
+						// Add 5 images to html string
 						// TODO: Randomize photos selected from array
 						for (var i = 0; i < pictureCount; i++) {
 							var farm = data.photos.photo[i].farm;
@@ -108,6 +108,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 					}
 					html += '</div>';
 					var result = '<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Flickr photos</h2></div>' + html;
+					// Cache result
 					self.cache[key] = result;
 					self.htmlString(result);
 				}).error(function(jqXHR, status, error) {
@@ -116,21 +117,24 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 			}),
 			new API('Wikipedia', true, 'images/wikipedia.png', 'name', function(name) {
 				var self = this;
+				// Make key for request token dictionary and result data cache
 				var key = name;
 				self.requestTokens[key] = $.ajax(
 					'https://en.wikipedia.org/w/api.php?&action=query&srsearch=' + name + '&list=search&format=json', {
 					dataType: 'jsonp',
 					success: function(data, status, request) {
-						// clearTimeout(self.requestTimeout);
+						// Inject HTML into api div
 						var html = '<div id="wiki-articles">'
 						var search = data.query.search;
 						var min = Math.min(data.query.search.length, 5);
+						// Add articles to html string
 						for (var i = 0; i < min; i++) {
 							var title = search[i].title;
 							html += '<a display="block"href="https://en.wikipedia.org/w/index.php?title="' + title + '>' + title + '</a>';
 						}
 						html += '</div>';
 						var result = '<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Wikipedia articles</h2></div>' + html;
+						// Cache result
 						self.cache[name] = result;
 						self.htmlString(result);
 					},
@@ -145,6 +149,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 			}),
 			new API('Foursquare', true, 'images/foursquare.png', 'location', function(lat, lon) {
 				var self = this;
+				// Make key for request token dictionary and result data cache
 				var key = lat + '$' + lon;
 				self.requestTokens[key] = $.getJSON('https://api.foursquare.com/v2/venues/search?intent=browse&client_id=5DQOVDCBMLP5BWR0KLMMMR3FSNMYGQ3YLO5RLT1M3SSKGVCS&client_secret=2S33ZUR25W0JXC3YY0VAVPX0XCPDH032QDTZGFIDNCWAOXF1&v=20130815&category=52e81612bcbc57f1066b7a21,4bf58dd8d48988d1e2941735,52e81612bcbc57f1066b7a22,4bf58dd8d48988d1df941735,4bf58dd8d48988d1e4941735,50aaa49e4b90af0d42d5de11,52e81612bcbc57f1066b7a12,52e81612bcbc57f1066b7a0f,52e81612bcbc57f1066b7a23,4bf58dd8d48988d15a941735,4bf58dd8d48988d1e0941735,4bf58dd8d48988d160941735,50aaa4314b90af0d42d5de10,4bf58dd8d48988d161941735,4bf58dd8d48988d15d941735,4eb1d4d54b900d56c88a45fc,52e81612bcbc57f1066b7a21,52e81612bcbc57f1066b7a13,4bf58dd8d48988d162941735,52e81612bcbc57f1066b7a14,4bf58dd8d48988d163941735,4eb1d4dd4b900d56c88a45fd,50328a4b91d4c4b30a586d6b,4bf58dd8d48988d165941735,4bf58dd8d48988d1e9941735,4bf58dd8d48988d159941735,52e81612bcbc57f1066b7a24,5032848691d4c4b30a586d61&radius=8000&ll=' + lat + ',' + lon, function(data) {
 					// Inject HTML into API div
@@ -152,6 +157,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 					var venues = data.response.venues;
 					if (venues.length > 0) {
 						var venueCount = Math.min(venues.length, 5);
+						// Add venues to html string
 						for (var i = 0; i < venueCount; i++) {
 							var name = venues[i].name;
 							var id = venues[i].id;
@@ -166,6 +172,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 					}
 					html += '</div>';
 					var result = '<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Foursquare check-in spots</h2></div>' + html;
+					// Cache result
 					self.cache[key] = result;
 					self.htmlString(result);
 				}).error(function(jqXHR, status, error) {
@@ -215,6 +222,7 @@ var ViewModel = function() {
 	var self = this;
 	var map, infoWindow;
 
+	// Find all content that needs to go in the infoWindow
 	this.infoWindowContent = ko.pureComputed(function() {
 		var htmlString = '<div id="info-window-content"><h1 class="park-info-window-title">' + self.currentPark() + '<small>National Park</small></h1>';
 		var apiList = self.model().apiList();
@@ -229,103 +237,9 @@ var ViewModel = function() {
 		return htmlString;
 	})
 
-	this.initMap = function() {
-		self.map = new google.maps.Map(document.getElementById('map'), {
-			mapTypeControlOptions: {position: google.maps.ControlPosition.TOP_RIGHT}
-		});
-
-
-		// Reset bounds if zoomed out too far
-		google.maps.event.addListener(self.map, 'zoom_changed', function() {
-		    var listener = 
-		        google.maps.event.addListener(self.map, 'bounds_changed', function(event) {
-		            if (this.getZoom() < 2) {
-		                self.adjustBounds();
-		            }
-		        google.maps.event.removeListener(listener);
-		    });
-		});
-
-		self.adjustBounds();
-		self.createMarkers(self.model().filteredParks());
-		self.infoWindow = new google.maps.InfoWindow({content: self.infoWindowContent()});
-		
-		window.onresize = function(event) {
-			self.adjustBounds();
-		};
-		$(document).on('fullscreenchange', function() {
-			self.adjustBounds();
-		});
-
-	}
-
-	this.adjustBounds = function() {
-		var bounds = self.model().bounds();
-		self.map.fitBounds(bounds);
-	}
-
-	this.removeAllMarkers = function() {
-		for (var marker in self.markers) {
-			self.markers[marker].setMap(null);
-		}
-		self.markers = [];
-	}
-
-	this.createMarker = function(title, lat, long) {
-		var marker = new google.maps.Marker({
-			title: title,
-			position: new google.maps.LatLng(lat, long),
-			map: self.map
-		});
-		marker.addListener('click', function() {
-			self.markerSelected(marker);
-		});
-		marker.addListener('dblclick', function() {
-			self.map.fitBounds({west: marker.getPosition().lng() - 1, east: marker.getPosition().lng() + 1, north: marker.getPosition().lat() + 1, south: marker.getPosition().lat() - 1});
-		})
-		self.markers.push(marker);
-	}
-
-	this.createMarkers = function(filteredParks) {
-		for (var i in filteredParks) {
-			var park = filteredParks[i];
-			self.createMarker(park.name, park.lat, park.long);
-		}
-	}
-
-	this.parkSelected = function(park) {
-		var marker = self.getMarkerForPark(park);
-		self.markerSelected(marker);
-	}
-
-	this.markerSelected = function(marker) {
-		self.bounceMarker(marker);
-		self.updateInfoWindowContent(marker);		
-		self.infoWindow.open(self.map, marker);
-	}
-
-	this.getMarkerForPark = function(park) {
-		for (var i in self.markers) {
-			if (self.markers[i].title == park.name) {
-				return self.markers[i];
-			}
-		}
-	}
-
-	this.getParkForMarker = function(marker) {
-		var parkList = self.model().parkList();
-		for (var i in parkList) {
-			if (parkList[i].name == marker.title) {
-				return parkList[i];
-			}
-		}
-	}
-
-	this.bounceMarker = function(marker) {
-		marker.setAnimation(google.maps.Animation.BOUNCE);
-		setTimeout(function(){ marker.setAnimation(null); }, 750);
-	}
-
+	// Generate html strings in all the api objects for the given marker.
+	// When these html strings update, the infoWindowContent variable will update
+	// with all the appropriate data.
 	this.updateInfoWindowContent = function(marker) {
 		var park = self.getParkForMarker(marker);
 		self.currentPark(park.name);
@@ -358,8 +272,121 @@ var ViewModel = function() {
 		}
 	}
 
-	this.slidUp = false;
+	// When the infoWindowContent variable changes, automatically
+	// place this into the infoWindow's content variable.
+	self.infoWindowContent.subscribe(function(newValue) {
+		self.infoWindow.setContent(newValue);
+	});
 
+	// Callback function after requesting Google map .js file
+	this.initMap = function() {
+		self.map = new google.maps.Map(document.getElementById('map'), {
+			mapTypeControlOptions: {position: google.maps.ControlPosition.TOP_RIGHT}
+		});
+
+
+		// Reset bounds if zoomed out too far
+		google.maps.event.addListener(self.map, 'zoom_changed', function() {
+		    var listener = 
+		        google.maps.event.addListener(self.map, 'bounds_changed', function(event) {
+		            if (this.getZoom() < 2) {
+		                self.adjustBounds();
+		            }
+		        google.maps.event.removeListener(listener);
+		    });
+		});
+
+		self.adjustBounds();
+		self.createMarkers(self.model().filteredParks());
+		self.infoWindow = new google.maps.InfoWindow({content: self.infoWindowContent()});
+		
+		window.onresize = function(event) {
+			self.adjustBounds();
+		};
+		$(document).on('fullscreenchange', function() {
+			self.adjustBounds();
+		});
+
+	}
+
+	// Find appropriate bounds to fit data and change map bounds
+	this.adjustBounds = function() {
+		var bounds = self.model().bounds();
+		self.map.fitBounds(bounds);
+	}
+
+	// Remove all markers from the map
+	this.removeAllMarkers = function() {
+		for (var marker in self.markers) {
+			self.markers[marker].setMap(null);
+		}
+		self.markers = [];
+	}
+
+	// Create a marker for the map
+	this.createMarker = function(title, lat, long) {
+		var marker = new google.maps.Marker({
+			title: title,
+			position: new google.maps.LatLng(lat, long),
+			map: self.map
+		});
+		marker.addListener('click', function() {
+			self.markerSelected(marker);
+		});
+		marker.addListener('dblclick', function() {
+			self.map.fitBounds({west: marker.getPosition().lng() - 1, east: marker.getPosition().lng() + 1, north: marker.getPosition().lat() + 1, south: marker.getPosition().lat() - 1});
+		})
+		self.markers.push(marker);
+	}
+
+	// Find filtered parks and create all markers for them
+	this.createMarkers = function(filteredParks) {
+		for (var i in filteredParks) {
+			var park = filteredParks[i];
+			self.createMarker(park.name, park.lat, park.long);
+		}
+	}
+
+	// React to when a park is selected in the nav menu list
+	this.parkSelected = function(park) {
+		var marker = self.getMarkerForPark(park);
+		self.markerSelected(marker);
+	}
+
+	// React to when a marker is selected on the map
+	this.markerSelected = function(marker) {
+		self.bounceMarker(marker);
+		self.updateInfoWindowContent(marker);		
+		self.infoWindow.open(self.map, marker);
+	}
+
+	// Get the correct equivalent marker for a given park
+	this.getMarkerForPark = function(park) {
+		for (var i in self.markers) {
+			if (self.markers[i].title == park.name) {
+				return self.markers[i];
+			}
+		}
+	}
+
+	// Get the correct equivalent park for a given marker
+	this.getParkForMarker = function(marker) {
+		var parkList = self.model().parkList();
+		for (var i in parkList) {
+			if (parkList[i].name == marker.title) {
+				return parkList[i];
+			}
+		}
+	}
+
+	// Animate the map marker to bounce
+	this.bounceMarker = function(marker) {
+		marker.setAnimation(google.maps.Animation.BOUNCE);
+		setTimeout(function(){ marker.setAnimation(null); }, 750);
+	}
+
+	// Animate the nav menu hiding and showing
+	this.slidUp = false;
 	this.menuClicked = function() {
 		if (self.slidUp) {
 			$('#filter-menu').slideDown();
@@ -379,10 +406,6 @@ var ViewModel = function() {
 			self.adjustBounds();
 		}
 	})
-
-	self.infoWindowContent.subscribe(function(newValue) {
-		self.infoWindow.setContent(newValue);
-	});
 }
 
 // Initialize ViewModel
