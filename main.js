@@ -50,6 +50,7 @@ var nationalParkList = [new Park('Acadia', 44.35, -68.21),
 						new Park('Kobuk Valley', 67.55, -159.28),
 						new Park('Lake Clark', 60.97, -153.42),
 						new Park('Lassen Volcanic', 40.49, -121.51),
+						new Park('Mammoth Cave', 37.18, 86.1),
 						new Park('Mesa Verde', 37.18, -108.49),
 						new Park('Mount Rainier', 46.85, -121.75),
 						new Park('North Cascades', 48.7, -121.2),
@@ -370,6 +371,7 @@ ko.applyBindings(vm);
 
 
 // Icon credits:
+// Flickr icon: http://lopagof.deviantart.com/art/Flickr-icons-scalable-85495940
 // Wikipedia icon: http://www.iconarchive.com/show/popular-sites-icons-by-sykonist/Wikipedia-icon.html
 // Foursquare icon: https://foursquare.com/about/logos
 	
