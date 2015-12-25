@@ -156,7 +156,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 					} else {
 						html += '<h3>No Foursquare results';
 					}
-					self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Foursquare venues</h2></div>' + html);
+					self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Foursquare spots</h2></div>' + html);
 				}).error(function(jqXHR, status, error) {
 					self.htmlString('Error getting Foursquare park info');
 				});
