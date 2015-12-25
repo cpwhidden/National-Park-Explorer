@@ -153,9 +153,9 @@ h2 {
 	width: 50%;
 	box-sizing: border-box;
 	display: block;
-	outline-color: #EEEEEE;
-	outline-style: solid;
-	outline-width: 3px;
+	border-color: #EEEEEE;
+	border-style: solid;
+	border-width: 3px;
 }
 
 .api-item h2 {
