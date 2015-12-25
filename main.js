@@ -5,7 +5,6 @@ var Park = function(name, lat, long) {
 	this.name = name;
 	this.lat = lat;
 	this.long = long;
-
 }
 
 // National Park Service will be releasing API in January 2016.  
@@ -79,8 +78,9 @@ var API = function(name, enabled, iconURL, requestParamType, request) {
 	this.enabled = ko.observable(enabled);
 	this.iconURL = iconURL;
 	self.request = request;
-	this.requestToken;
+	this.requestTokens = {};
 	this.requestTimeout;
+	this.cache = {};
 	this.requestParamType = requestParamType;
 	this.defaultHTML = '<div class="api-header"><img class="api-icon" src="' + this.iconURL + '"></img><h2 style="font-weight:lighter;">Making request...</h2></div>';
 	this.htmlString = ko.observable(self.defaultHTML);
@@ -89,12 +89,12 @@ var API = function(name, enabled, iconURL, requestParamType, request) {
 // TODO: rewrite with HTML templates instead of concatenating strings
 var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(lat, lon) {
 				var self = this;
-				// self.htmlString(self.defaultHTML);
-				self.requestToken = $.getJSON('https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=6292fdf93c1a3e4947455f9d710fd0d2&format=json&nojsoncallback=1&lat=' + lat + '&lon=' + lon + '&radius=10', function(data){
+				var key = lat + '$' + lon;
+				self.requestTokens[key] = $.getJSON('https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=6292fdf93c1a3e4947455f9d710fd0d2&format=json&nojsoncallback=1&lat=' + lat + '&lon=' + lon + '&radius=10', function(data){
 					// Inject HTML into api div
+					var html = '<div id="flickr-photos">';
 					if (data.photos.photo.length > 0) {
 						var pictureCount = Math.min(data.photos.photo.length, 5);
-						var html = '<div id="flickr-photos">';
 						// TODO: Randomize photos selected from array
 						for (var i = 0; i < pictureCount; i++) {
 							var farm = data.photos.photo[i].farm;
@@ -103,23 +103,25 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 							var secret = data.photos.photo[i].secret;
 							html += '<img src=https://farm' + farm + '.staticflickr.com/' + server + '/' + id + '_' + secret + '.jpg</img>';
 						}
-						html += '</div>';
-						self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Flickr photos</h2></div>' + html);
+					} else {
+						html += '<h3>No Flickr results</h3>';
 					}
+					html += '</div>';
+					var result = '<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Flickr photos</h2></div>' + html;
+					self.cache[key] = result;
+					self.htmlString(result);
 				}).error(function(jqXHR, status, error) {
-					self.htmlString('Error getting photos');
+					self.htmlString('<h3>Error getting photos</h3>');
 				});
 			}),
 			new API('Wikipedia', true, 'images/wikipedia.png', 'name', function(name) {
 				var self = this;
-				self.requestTimeout = setTimeout(function() {
-			        self.htmlString('<h3>Failed to get Wiki articles</h3>');
-			    }, 8000);
-				self.requestToken = $.ajax(
+				var key = name;
+				self.requestTokens[key] = $.ajax(
 					'https://en.wikipedia.org/w/api.php?&action=query&srsearch=' + name + '&list=search&format=json', {
 					dataType: 'jsonp',
 					success: function(data, status, request) {
-						clearTimeout(self.requestTimeout);
+						// clearTimeout(self.requestTimeout);
 						var html = '<div id="wiki-articles">'
 						var search = data.query.search;
 						var min = Math.min(data.query.search.length, 5);
@@ -128,8 +130,14 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 							html += '<a display="block"href="https://en.wikipedia.org/w/index.php?title="' + title + '>' + title + '</a>';
 						}
 						html += '</div>';
-						self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Wikipedia articles</h2></div>' + html);
-					}
+						var result = '<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Wikipedia articles</h2></div>' + html;
+						self.cache[name] = result;
+						self.htmlString(result);
+					},
+					error: function(jqXHR, status, request) {
+						self.htmlString('<h3>Error getting Wikipedia articles');
+					},
+					timeout: 8000
 
 				}).error(function() { 
 					self.htmlString('<h3>Error getting Wikipedia articles</h3>');
@@ -137,9 +145,9 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 			}),
 			new API('Foursquare', true, 'images/foursquare.png', 'location', function(lat, lon) {
 				var self = this;
-				self.requestToken = $.getJSON('https://api.foursquare.com/v2/venues/search?intent=browse&client_id=5DQOVDCBMLP5BWR0KLMMMR3FSNMYGQ3YLO5RLT1M3SSKGVCS&client_secret=2S33ZUR25W0JXC3YY0VAVPX0XCPDH032QDTZGFIDNCWAOXF1&v=20130815&category=52e81612bcbc57f1066b7a21,4bf58dd8d48988d1e2941735,52e81612bcbc57f1066b7a22,4bf58dd8d48988d1df941735,4bf58dd8d48988d1e4941735,50aaa49e4b90af0d42d5de11,52e81612bcbc57f1066b7a12,52e81612bcbc57f1066b7a0f,52e81612bcbc57f1066b7a23,4bf58dd8d48988d15a941735,4bf58dd8d48988d1e0941735,4bf58dd8d48988d160941735,50aaa4314b90af0d42d5de10,4bf58dd8d48988d161941735,4bf58dd8d48988d15d941735,4eb1d4d54b900d56c88a45fc,52e81612bcbc57f1066b7a21,52e81612bcbc57f1066b7a13,4bf58dd8d48988d162941735,52e81612bcbc57f1066b7a14,4bf58dd8d48988d163941735,4eb1d4dd4b900d56c88a45fd,50328a4b91d4c4b30a586d6b,4bf58dd8d48988d165941735,4bf58dd8d48988d1e9941735,4bf58dd8d48988d159941735,52e81612bcbc57f1066b7a24,5032848691d4c4b30a586d61&radius=8000&ll=' + lat + ',' + lon, function(data) {
+				var key = lat + '$' + lon;
+				self.requestTokens[key] = $.getJSON('https://api.foursquare.com/v2/venues/search?intent=browse&client_id=5DQOVDCBMLP5BWR0KLMMMR3FSNMYGQ3YLO5RLT1M3SSKGVCS&client_secret=2S33ZUR25W0JXC3YY0VAVPX0XCPDH032QDTZGFIDNCWAOXF1&v=20130815&category=52e81612bcbc57f1066b7a21,4bf58dd8d48988d1e2941735,52e81612bcbc57f1066b7a22,4bf58dd8d48988d1df941735,4bf58dd8d48988d1e4941735,50aaa49e4b90af0d42d5de11,52e81612bcbc57f1066b7a12,52e81612bcbc57f1066b7a0f,52e81612bcbc57f1066b7a23,4bf58dd8d48988d15a941735,4bf58dd8d48988d1e0941735,4bf58dd8d48988d160941735,50aaa4314b90af0d42d5de10,4bf58dd8d48988d161941735,4bf58dd8d48988d15d941735,4eb1d4d54b900d56c88a45fc,52e81612bcbc57f1066b7a21,52e81612bcbc57f1066b7a13,4bf58dd8d48988d162941735,52e81612bcbc57f1066b7a14,4bf58dd8d48988d163941735,4eb1d4dd4b900d56c88a45fd,50328a4b91d4c4b30a586d6b,4bf58dd8d48988d165941735,4bf58dd8d48988d1e9941735,4bf58dd8d48988d159941735,52e81612bcbc57f1066b7a24,5032848691d4c4b30a586d61&radius=8000&ll=' + lat + ',' + lon, function(data) {
 					// Inject HTML into API div
-					console.log(data);
 					var html = '<div id="foursquare-venues">';
 					var venues = data.response.venues;
 					if (venues.length > 0) {
@@ -153,13 +161,15 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 								html += '<a display="block">' + venues[i].name + '</a>';
 							}
 						}
-						html += '</div>';
 					} else {
-						html += '<h3>No Foursquare results';
+						html += '<h3>No Foursquare results</h3>';
 					}
-					self.htmlString('<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Foursquare check-in spots</h2></div>' + html);
+					html += '</div>';
+					var result = '<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2>Foursquare check-in spots</h2></div>' + html;
+					self.cache[key] = result;
+					self.htmlString(result);
 				}).error(function(jqXHR, status, error) {
-					self.htmlString('Error getting Foursquare park info');
+					self.htmlString('<h3>Error getting Foursquare park info</h3>');
 				});
 			})];
 
@@ -321,18 +331,29 @@ var ViewModel = function() {
 		self.currentPark(park.name);
 		var apiList = self.model().apiList();
 		for (var api in apiList) {
-			if (apiList[api].requestToken) {
-				apiList[api].requestToken.abort();
-			}
-			if (apiList[api].requestTimeout) {
-				clearTimeout(apiList[api].requestTimeout);
-			}
-			var defHTML = apiList[api].defaultHTML;
-			apiList[api].htmlString(defHTML);
-			if (apiList[api].requestParamType == 'location') {
-				apiList[api].request(park.lat, park.long);
-			} else if (apiList[api].requestParamType == 'name') {
-				apiList[api].request(park.name);
+			var currentAPI = apiList[api];
+			if (currentAPI.requestParamType == 'location') {
+				var key = park.lat + '$' + park.long;
+				if (!currentAPI.requestTokens[key]) {
+					if (currentAPI.cache[key]) {
+						currentAPI.htmlString(currentAPI.cache[key])
+					} else {
+						var defHTML = currentAPI.defaultHTML;
+						currentAPI.htmlString(defHTML);
+						currentAPI.request(park.lat, park.long);
+					}
+				}
+			} else if (currentAPI.requestParamType == 'name') {
+				var key = park.name				
+				if (!currentAPI.requestTokens[key]) {
+					if (currentAPI.cache[key]) {
+						currentAPI.htmlString(currentAPI.cache[key]);
+				 	} else {
+				 		var defHTML = currentAPI.defaultHTML;
+						currentAPI.htmlString(defHTML);
+						currentAPI.request(park.name);
+					}
+				}
 			}
 		}
 	}
