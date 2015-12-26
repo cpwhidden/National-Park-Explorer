@@ -84,13 +84,13 @@ h1 small {
 #filter-menu {
 	display: flex;
 	flex-direction: column;
-	overflow: scroll;
-	flex-grow: 2;
+	overflow: hidden;
+	height: calc(100% - 50px);
 }
 
 #filter-box {
 	width: 100%;
-	min-height: 40px;
+	height: 40px;
 	font-size: 1.5em;
 	box-sizing: border-box;
 	padding-left: 12px;
@@ -107,9 +107,8 @@ h1 small {
 
 #filter-list {
 	overflow: scroll;
-	flex-grow: 2;
-	max-height: 100%;
-	min-height: 300px;
+	height: calc(100% - 200px);
+	min-height: 200px;
 	margin-bottom: 20px;
 }
 
@@ -227,14 +226,15 @@ h2 {
 }
 
 #sources-section {
-	bottom: 0;
+	min-height: 100px;
+	height: 150px;
 }
 
 #sources-header {
 	text-align: right;
 	color: #222;
 	font-weight: 500;
-	margin-right: 15px;
+	margin: 15px;
 }
 
 #wiki-articles {
