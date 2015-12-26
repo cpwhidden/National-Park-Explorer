@@ -143,7 +143,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 					error: function(jqXHR, status, request) {
 						self.htmlString('<h3>Error getting Wikipedia articles');
 					},
-					timeout: 8000
+					timeout: 5000
 
 				}).error(function() { 
 					self.htmlString('<h3>Error getting Wikipedia articles</h3>');
