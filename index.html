@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type"text/css" href="style.css">
+	<title>National Park Explorer</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta charset="UTF-8">
 </head>
@@ -11,22 +12,21 @@
 		</div>
 		<div id="nav-area">
 			<div id="nav-header">
-				<img id="nav-btn" src="images/hamburger.png" onclick="vm.menuClicked()"></img>
+				<img id="nav-btn" src="images/hamburger.png" onclick="vm.menuClicked()" alt="menu">
 				<h1 id="map-subject" data-bind="text: currentSearch">US National Parks</h1>
 			</div>
 			<div id="filter-menu">
-				<input id="filter-box" placeholder="Filter Parks..." data-bind="value: filterString, valueUpdate: ['afterkeydown']"></input>
+				<input id="filter-box" placeholder="Filter Parks..." data-bind="value: filterString, valueUpdate: ['afterkeydown']">
 				<div id="filter-list" data-bind="foreach: filteredParks">
 					<div class="filtered-park" data-bind="click: $root.parkSelected">
 						<h2 data-bind="text: name"></h2>
 					</div>
 				</div>
-<!-- 				<hr id="api-hr"> -->
 				<h2 id="sources-header">3rd Party Sources</h2>
 				<div class="api-list" data-bind="foreach: apiList">
 					<div class="api-item">
 						<input class="api-check" type="checkbox" data-bind="checked: enabled">
-						<img class="api-icon" src="" data-bind="attr: {src: iconURL, alt: name}"></img>
+						<img class="api-icon" src="" data-bind="attr: {src: iconURL, alt: name}" alt="">
 						<h2 data-bind="text: name"></h2>
 					</div>
 				</div>
