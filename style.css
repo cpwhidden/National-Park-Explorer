@@ -60,6 +60,9 @@ h1 small {
 		right: 0;
 		width: 100%;
 	}
+	#map-subject {
+		font-size: 30px;
+	}
 }
 
 #nav-btn {
