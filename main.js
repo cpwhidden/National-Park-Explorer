@@ -257,25 +257,21 @@ var ViewModel = function() {
 				var key, defHTML;
 				if (currentAPI.requestParamType == 'location') {
 					key = park.lat + '$' + park.long;
-					if (!currentAPI.requestTokens[key]) {
-						if (currentAPI.cache[key]) {
-							currentAPI.htmlString(currentAPI.cache[key]);
-						} else {
-							defHTML = currentAPI.defaultHTML;
-							currentAPI.htmlString(defHTML);
-							currentAPI.request(park.lat, park.long);
-						}
+					if (currentAPI.cache[key]) {
+						currentAPI.htmlString(currentAPI.cache[key]);
+					} else if (!currentAPI.requestTokens[key]) {
+						defHTML = currentAPI.defaultHTML;
+						currentAPI.htmlString(defHTML);
+						currentAPI.request(park.lat, park.long);
 					}
 				} else if (currentAPI.requestParamType == 'name') {
 					key = park.name;				
-					if (!currentAPI.requestTokens[key]) {
-						if (currentAPI.cache[key]) {
-							currentAPI.htmlString(currentAPI.cache[key]);
-					 	} else {
-					 		defHTML = currentAPI.defaultHTML;
-							currentAPI.htmlString(defHTML);
-							currentAPI.request(park.name);
-						}
+					if (currentAPI.cache[key]) {
+						currentAPI.htmlString(currentAPI.cache[key]);
+				 	} else if (!currentAPI.requestTokens[key]) {
+				 		defHTML = currentAPI.defaultHTML;
+						currentAPI.htmlString(defHTML);
+						currentAPI.request(park.name);
 					}
 				}				
 			}
@@ -430,7 +426,5 @@ ko.applyBindings(vm);
 
 
 // Icon credits:
-// Flickr icon: http://lopagof.deviantart.com/art/Flickr-icons-scalable-85495940
-// Wikipedia icon: http://www.iconarchive.com/show/popular-sites-icons-by-sykonist/Wikipedia-icon.html
-// Foursquare icon: https://foursquare.com/about/logos
+ 
 	
