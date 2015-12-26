@@ -1,11 +1,10 @@
-'use strict'
-
 // Refactor to separate model file
 var Park = function(name, lat, long) {
+	'use strict';
 	this.name = name;
 	this.lat = lat;
 	this.long = long;
-}
+};
 
 // National Park Service will be releasing API in January 2016.  
 // Check again in future to automate and gather more park info instead of hardcoding here.
@@ -72,6 +71,7 @@ var nationalParkList = [new Park('Acadia', 44.35, -68.21),
 
 // Data structure to describe API requests
 var API = function(name, enabled, iconURL, requestParamType, request) {
+	'use strict';
 	var self = this;
 	this.name = ko.observable(name);
 	this.enabled = ko.observable(enabled);
@@ -82,10 +82,11 @@ var API = function(name, enabled, iconURL, requestParamType, request) {
 	this.requestParamType = requestParamType;
 	this.defaultHTML = '<div class="api-header"><img class="api-icon" src="' + this.iconURL + '"></img><h2 style="font-weight:lighter;">Making request...</h2></div>';
 	this.htmlString = ko.observable(self.defaultHTML);
-}
+};
 
 // TODO: rewrite with HTML templates instead of concatenating strings
 var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(lat, lon) {
+				'use strict';
 				var self = this;
 				// Make key for request token dictionary and result data cache
 				var key = lat + '$' + lon;
@@ -116,6 +117,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 				});
 			}),
 			new API('Wikipedia', true, 'images/wikipedia.png', 'name', function(name) {
+				'use strict';
 				var self = this;
 				// Make key for request token dictionary and result data cache
 				var key = name;
@@ -124,7 +126,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 					dataType: 'jsonp',
 					success: function(data, status, request) {
 						// Inject HTML into api div
-						var html = '<div id="wiki-articles">'
+						var html = '<div id="wiki-articles">';
 						var search = data.query.search;
 						var min = Math.min(data.query.search.length, 5);
 						// Add articles to html string
@@ -145,9 +147,10 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 
 				}).error(function() { 
 					self.htmlString('<h3>Error getting Wikipedia articles</h3>');
-				})
+				});
 			}),
 			new API('Foursquare', true, 'images/foursquare.png', 'location', function(lat, lon) {
+				'use strict';
 				var self = this;
 				// Make key for request token dictionary and result data cache
 				var key = lat + '$' + lon;
@@ -160,11 +163,11 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 						// Add venues to html string
 						for (var i = 0; i < venueCount; i++) {
 							var name = venues[i].name;
-							var id = venues[i].id;
+							var url = venues[i].url;
 							if (venues[i].url) {
-								html += '<a display="block" href="' + venues[i].url + '">' + venues[i].name + '</a>';
+								html += '<a display="block" href="' + url + '">' + name + '</a>';
 							} else {
-								html += '<a display="block">' + venues[i].name + '</a>';
+								html += '<a display="block">' + name + '</a>';
 							}
 						}
 					} else {
@@ -181,6 +184,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 			})];
 
 var Model = function() {
+	'use strict';
 	var self = this;
 	this.currentSearch = ko.observable("US National Parks");
 	this.filterString = ko.observable("");
@@ -194,7 +198,7 @@ var Model = function() {
 	// Find bounds for map based on latitude and longitude of parks
 	this.bounds = ko.computed(function() {
 		var list;
-		if (self.filteredParks().length == 0) {
+		if (self.filteredParks().length === 0) {
 			list = self.parkList();
 		} else {
 			list = self.filteredParks();
@@ -202,20 +206,23 @@ var Model = function() {
 		var lats = [];
 		var longs = [];
 		for (var i in list) {
-			lats.push(list[i].lat);
-			longs.push(list[i].long);
+			if (list.hasOwnProperty(i)) {
+				lats.push(list[i].lat);
+				longs.push(list[i].long);
+			}
 		}
 
 		// Extend latitude and longitude by one degree in each direction to give a margin on the map
 		var bounds = {west: Math.min.apply(null, longs) - 1, east: Math.max.apply(null, longs) + 1, north: Math.max.apply(null, lats) + 1, south: Math.min.apply(null, lats) - 1};
 		return bounds;
-	})
+	});
 	this.selectedResultIndex = ko.observable(null);
 	this.apiList = ko.observableArray(apis);
 
-}
+};
 
 var ViewModel = function() {
+	'use strict';
 	this.model = ko.observable(new Model());
 	this.currentPark = ko.observable("");	
 	this.markers = [];
@@ -227,7 +234,7 @@ var ViewModel = function() {
 		var htmlString = '<div id="info-window-content"><h1 class="park-info-window-title">' + self.currentPark() + '<small>National Park</small></h1>';
 		var apiList = self.model().apiList();
 		for (var api in apiList) {
-			if (apiList[api].enabled() == true) {
+			if (apiList[api].enabled() === true) {
 				htmlString += '<div class="api-item info-window-container">';
 				htmlString += apiList[api].htmlString();
 				htmlString += '</div>';
@@ -235,7 +242,7 @@ var ViewModel = function() {
 		}
 		htmlString += '</div>';
 		return htmlString;
-	})
+	});
 
 	// Generate html strings in all the api objects for the given marker.
 	// When these html strings update, the infoWindowContent variable will update
@@ -245,32 +252,35 @@ var ViewModel = function() {
 		self.currentPark(park.name);
 		var apiList = self.model().apiList();
 		for (var api in apiList) {
-			var currentAPI = apiList[api];
-			if (currentAPI.requestParamType == 'location') {
-				var key = park.lat + '$' + park.long;
-				if (!currentAPI.requestTokens[key]) {
-					if (currentAPI.cache[key]) {
-						currentAPI.htmlString(currentAPI.cache[key])
-					} else {
-						var defHTML = currentAPI.defaultHTML;
-						currentAPI.htmlString(defHTML);
-						currentAPI.request(park.lat, park.long);
+			if (apiList.hasOwnProperty(api)) {
+				var currentAPI = apiList[api];
+				var key, defHTML;
+				if (currentAPI.requestParamType == 'location') {
+					key = park.lat + '$' + park.long;
+					if (!currentAPI.requestTokens[key]) {
+						if (currentAPI.cache[key]) {
+							currentAPI.htmlString(currentAPI.cache[key]);
+						} else {
+							defHTML = currentAPI.defaultHTML;
+							currentAPI.htmlString(defHTML);
+							currentAPI.request(park.lat, park.long);
+						}
 					}
-				}
-			} else if (currentAPI.requestParamType == 'name') {
-				var key = park.name				
-				if (!currentAPI.requestTokens[key]) {
-					if (currentAPI.cache[key]) {
-						currentAPI.htmlString(currentAPI.cache[key]);
-				 	} else {
-				 		var defHTML = currentAPI.defaultHTML;
-						currentAPI.htmlString(defHTML);
-						currentAPI.request(park.name);
+				} else if (currentAPI.requestParamType == 'name') {
+					key = park.name;				
+					if (!currentAPI.requestTokens[key]) {
+						if (currentAPI.cache[key]) {
+							currentAPI.htmlString(currentAPI.cache[key]);
+					 	} else {
+					 		defHTML = currentAPI.defaultHTML;
+							currentAPI.htmlString(defHTML);
+							currentAPI.request(park.name);
+						}
 					}
-				}
+				}				
 			}
 		}
-	}
+	};
 
 	// When the infoWindowContent variable changes, automatically
 	// place this into the infoWindow's content variable.
@@ -307,21 +317,23 @@ var ViewModel = function() {
 			self.adjustBounds();
 		});
 
-	}
+	};
 
 	// Find appropriate bounds to fit data and change map bounds
 	this.adjustBounds = function() {
 		var bounds = self.model().bounds();
 		self.map.fitBounds(bounds);
-	}
+	};
 
 	// Remove all markers from the map
 	this.removeAllMarkers = function() {
 		for (var marker in self.markers) {
-			self.markers[marker].setMap(null);
+			if (self.markers.hasOwnProperty(marker)) {
+				self.markers[marker].setMap(null);				
+			}
 		}
 		self.markers = [];
-	}
+	};
 
 	// Create a marker for the map
 	this.createMarker = function(title, lat, long) {
@@ -335,30 +347,32 @@ var ViewModel = function() {
 		});
 		marker.addListener('dblclick', function() {
 			self.map.fitBounds({west: marker.getPosition().lng() - 1, east: marker.getPosition().lng() + 1, north: marker.getPosition().lat() + 1, south: marker.getPosition().lat() - 1});
-		})
+		});
 		self.markers.push(marker);
-	}
+	};
 
 	// Find filtered parks and create all markers for them
 	this.createMarkers = function(filteredParks) {
 		for (var i in filteredParks) {
-			var park = filteredParks[i];
-			self.createMarker(park.name, park.lat, park.long);
+			if (filteredParks.hasOwnProperty(i)) {
+				var park = filteredParks[i];
+				self.createMarker(park.name, park.lat, park.long);				
+			}
 		}
-	}
+	};
 
 	// React to when a park is selected in the nav menu list
 	this.parkSelected = function(park) {
 		var marker = self.getMarkerForPark(park);
 		self.markerSelected(marker);
-	}
+	};
 
 	// React to when a marker is selected on the map
 	this.markerSelected = function(marker) {
 		self.bounceMarker(marker);
 		self.updateInfoWindowContent(marker);		
 		self.infoWindow.open(self.map, marker);
-	}
+	};
 
 	// Get the correct equivalent marker for a given park
 	this.getMarkerForPark = function(park) {
@@ -367,7 +381,7 @@ var ViewModel = function() {
 				return self.markers[i];
 			}
 		}
-	}
+	};
 
 	// Get the correct equivalent park for a given marker
 	this.getParkForMarker = function(marker) {
@@ -377,13 +391,13 @@ var ViewModel = function() {
 				return parkList[i];
 			}
 		}
-	}
+	};
 
 	// Animate the map marker to bounce
 	this.bounceMarker = function(marker) {
 		marker.setAnimation(google.maps.Animation.BOUNCE);
 		setTimeout(function(){ marker.setAnimation(null); }, 750);
-	}
+	};
 
 	// Animate the nav menu hiding and showing
 	this.slidUp = false;
@@ -396,17 +410,17 @@ var ViewModel = function() {
 		self.slidUp = !self.slidUp;
 		// $('#filter-menu').toggleClass('hidden');
 		$('#nav-area').toggleClass('collapsed');
-	}
+	};
 
 	// Redraw all markers when the filteredParks list changes.
 	self.model().filteredParks.subscribe(function(newValue) {
-		if (self.map != undefined) {
+		if (self.map !== undefined) {
 			self.removeAllMarkers();
 			self.createMarkers(newValue);
 			self.adjustBounds();
 		}
-	})
-}
+	});
+};
 
 // Initialize ViewModel
 var vm = new ViewModel();
