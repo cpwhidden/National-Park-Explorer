@@ -14,6 +14,6 @@ Open the index.html file. The application is all contained within this page.
 
 ## Credits
 
-Flickr icon: http://lopagof.deviantart.com/art/Flickr-icons-scalable-85495940
-Wikipedia icon: http://www.iconarchive.com/show/popular-sites-icons-by-sykonist/Wikipedia-icon.html
-Foursquare icon: https://foursquare.com/about/logos
+* Flickr icon: http://lopagof.deviantart.com/art/Flickr-icons-scalable-85495940
+* Wikipedia icon: http://www.iconarchive.com/show/popular-sites-icons-by-sykonist/Wikipedia-icon.html
+* Foursquare icon: https://foursquare.com/about/logos
