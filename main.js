@@ -6,7 +6,7 @@ var Park = function(name, lat, long) {
 	this.long = long;
 };
 
-// National Park Service will be releasing API in January 2016.  
+// National Park Service will be releasing API in January 2016.
 // Check again in future to automate and gather more park info instead of hardcoding here.
 // Data below comes from Wikipedia article List of US National Parks
 var nationalParkList = [new Park('Acadia', 44.35, -68.21),
@@ -227,6 +227,7 @@ var ViewModel = function() {
 	this.currentPark = ko.observable(null);	
 	this.markers = [];
 	this.minZoom = 2;
+	this.menuCollapsed = ko.observable(false);
 	var self = this;
 	var map, infoWindow;
 
@@ -407,17 +408,25 @@ var ViewModel = function() {
 	};
 
 	// Animate the nav menu hiding and showing
-	this.slidUp = false;
 	this.menuClicked = function() {
-		if (self.slidUp) {
-			$('#filter-menu').slideDown();
-		} else {
-			$('#filter-menu').slideUp();	
-		}
-		self.slidUp = !self.slidUp;
-		// $('#filter-menu').toggleClass('hidden');
-		$('#nav-area').toggleClass('collapsed');
+		self.menuCollapsed(!self.menuCollapsed());
 	};
+
+	// Animate the hiding and showing of the filter menu
+	self.menuCollapsed.subscribe(function(newValue) {
+		if (newValue === true) {
+			$('#filter-menu').slideUp(400, function() {
+				$('#nav-area').toggleClass('collapsed');
+			});
+		} else {
+			// Animation tends to 'stick' or stop sometimes,
+			// usually the first time it is use.
+			// Only happens on Chrome and Chrome Canary among OS X browsers.
+			$('#nav-area').toggleClass('collapsed');
+			$('#filter-menu').slideDown(500);
+		}
+
+	});
 
 	// Redraw all markers when the filteredParks list changes.
 	self.model().filteredParks.subscribe(function(newValue) {
@@ -428,10 +437,10 @@ var ViewModel = function() {
 		}
 	});
 
-	if (window.screen.width < 600) {
+	// Collapse the menu by default for small screens
+	if (document.documentElement.clientWidth < 600) {
 		document.getElementById('filter-menu').style.display = 'none';
-		$('#nav-area').toggleClass('collapsed');
-		self.slidUp = true;
+		self.menuCollapsed(true);
 	}
 };
 
