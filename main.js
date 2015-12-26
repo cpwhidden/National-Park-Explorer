@@ -426,5 +426,7 @@ ko.applyBindings(vm);
 
 
 // Icon credits:
- 
+// Flickr icon: http://lopagof.deviantart.com/art/Flickr-icons-scalable-85495940
+// Wikipedia icon: http://www.iconarchive.com/show/popular-sites-icons-by-sykonist/Wikipedia-icon.html
+// Foursquare icon: https://foursquare.com/about/logos
 	
