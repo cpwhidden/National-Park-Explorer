@@ -49,9 +49,17 @@ h1 small {
 	width: 350px;
 	max-width: 100%;
 	height: calc(100% - 35px);
-	/*overflow: scroll;*/
 	display: flex;
 	flex-direction: column;
+}
+
+@media screen and (max-width: 600px) {
+	#nav-area {
+		left: 0;
+		top: 0;
+		right: 0;
+		width: 100%;
+	}
 }
 
 #nav-btn {

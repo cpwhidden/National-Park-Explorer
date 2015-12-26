@@ -224,8 +224,9 @@ var Model = function() {
 var ViewModel = function() {
 	'use strict';
 	this.model = ko.observable(new Model());
-	this.currentPark = ko.observable("");	
+	this.currentPark = ko.observable(null);	
 	this.markers = [];
+	this.minZoom = 2;
 	var self = this;
 	var map, infoWindow;
 
@@ -295,11 +296,18 @@ var ViewModel = function() {
 		google.maps.event.addListener(self.map, 'zoom_changed', function() {
 		    var listener = 
 		        google.maps.event.addListener(self.map, 'bounds_changed', function(event) {
-		            if (this.getZoom() < 2) {
+		            if (this.getZoom() < self.minZoom) {
 		                self.adjustBounds();
 		            }
 		        google.maps.event.removeListener(listener);
 		    });
+		});
+
+		google.maps.event.addListener(self.map, 'click', function() {
+			if (self.currentPark() && self.infoWindow) {
+				self.infoWindow.close();
+				self.currentPark(null);
+			}
 		});
 
 		self.adjustBounds();
@@ -360,6 +368,9 @@ var ViewModel = function() {
 	// React to when a park is selected in the nav menu list
 	this.parkSelected = function(park) {
 		var marker = self.getMarkerForPark(park);
+		if (window.screen.width < 600) {
+			self.menuClicked();
+		}
 		self.markerSelected(marker);
 	};
 
@@ -416,6 +427,12 @@ var ViewModel = function() {
 			self.adjustBounds();
 		}
 	});
+
+	if (window.screen.width < 600) {
+		document.getElementById('filter-menu').style.display = 'none';
+		$('#nav-area').toggleClass('collapsed');
+		self.slidUp = true;
+	}
 };
 
 // Initialize ViewModel
