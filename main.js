@@ -411,17 +411,11 @@ var ViewModel = function() {
 	// Animate the hiding and showing of the filter menu
 	self.menuCollapsed.subscribe(function(newValue) {
 		if (newValue === true) {
-			$('#filter-menu').slideUp(400, function() {
-				$('#nav-area').toggleClass('collapsed');
-			});
+			$('#filter-menu').slideUp(400);
 		} else {
-			// Animation tends to 'stick' or stop sometimes,
-			// usually the first time it is use.
-			// Only happens on Chrome and Chrome Canary among OS X browsers.
-			$('#nav-area').toggleClass('collapsed');
-			$('#filter-menu').slideDown(500);
+			$('#filter-menu').slideDown(400);
 		}
-
+		$('#nav-area').toggleClass('collapsed');
 	});
 
 	// Redraw all markers when the filteredParks list changes.
