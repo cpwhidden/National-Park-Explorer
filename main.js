@@ -1,9 +1,10 @@
 // Refactor to separate model file
 var Park = function(name, lat, long) {
 	'use strict';
-	this.name = name;
-	this.lat = lat;
-	this.long = long;
+	var self = this;
+	self.name = name;
+	self.lat = lat;
+	self.long = long;
 };
 
 // National Park Service will be releasing API in January 2016.
@@ -73,15 +74,15 @@ var nationalParkList = [new Park('Acadia', 44.35, -68.21),
 var API = function(name, enabled, iconURL, requestParamType, request) {
 	'use strict';
 	var self = this;
-	this.name = ko.observable(name);
-	this.enabled = ko.observable(enabled);
-	this.iconURL = iconURL;
+	self.name = ko.observable(name);
+	self.enabled = ko.observable(enabled);
+	self.iconURL = iconURL;
 	self.request = request;
-	this.requestTokens = {};
-	this.cache = {};
-	this.requestParamType = requestParamType;
-	this.defaultHTML = '<div class="api-header"><img class="api-icon" src="' + this.iconURL + '"></img><h2 style="font-weight:lighter;">Making request...</h2></div>';
-	this.htmlString = ko.observable(self.defaultHTML);
+	self.requestTokens = {};
+	self.cache = {};
+	self.requestParamType = requestParamType;
+	self.defaultHTML = '<div class="api-header"><img class="api-icon" src="' + self.iconURL + '"></img><h2 style="font-weight:lighter;">Making request...</h2></div>';
+	self.htmlString = ko.observable(self.defaultHTML);
 };
 
 // TODO: rewrite with HTML templates instead of concatenating strings
@@ -186,17 +187,17 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 var Model = function() {
 	'use strict';
 	var self = this;
-	this.currentSearch = ko.observable("US National Parks");
-	this.filterString = ko.observable("");
-	this.parkList = ko.observableArray(nationalParkList);
-	this.filteredParks = ko.computed(function() {
-		return this.parkList().filter(function(element) {
-			return (element.name.toLowerCase().indexOf(this.filterString().toLowerCase()) > -1);
-		}, this);		
-	}, this);
+	self.currentSearch = ko.observable("US National Parks");
+	self.filterString = ko.observable("");
+	self.parkList = ko.observableArray(nationalParkList);
+	self.filteredParks = ko.computed(function() {
+		return self.parkList().filter(function(element) {
+			return (element.name.toLowerCase().indexOf(self.filterString().toLowerCase()) > -1);
+		}, self);		
+	}, self);
 
 	// Find bounds for map based on latitude and longitude of parks
-	this.bounds = ko.computed(function() {
+	self.bounds = ko.computed(function() {
 		var list;
 		if (self.filteredParks().length === 0) {
 			list = self.parkList();
@@ -216,23 +217,23 @@ var Model = function() {
 		var bounds = {west: Math.min.apply(null, longs) - 1, east: Math.max.apply(null, longs) + 1, north: Math.max.apply(null, lats) + 1, south: Math.min.apply(null, lats) - 1};
 		return bounds;
 	});
-	this.selectedResultIndex = ko.observable(null);
-	this.apiList = ko.observableArray(apis);
+	self.selectedResultIndex = ko.observable(null);
+	self.apiList = ko.observableArray(apis);
 
 };
 
 var ViewModel = function() {
 	'use strict';
-	this.model = ko.observable(new Model());
-	this.currentPark = ko.observable(null);	
-	this.markers = [];
-	this.minZoom = 2;
-	this.menuCollapsed = ko.observable(false);
-	var self = this;
+	var self = this;	
+	self.model = ko.observable(new Model());
+	self.currentPark = ko.observable(null);	
+	self.markers = [];
+	self.minZoom = 2;
+	self.menuCollapsed = ko.observable(false);
 	var map, infoWindow;
 
 	// Find all content that needs to go in the infoWindow
-	this.infoWindowContent = ko.pureComputed(function() {
+	self.infoWindowContent = ko.pureComputed(function() {
 		var htmlString = '<div id="info-window-content"><h1 class="park-info-window-title">' + self.currentPark() + '<small>National Park</small></h1>';
 		var apiList = self.model().apiList();
 		for (var api in apiList) {
@@ -249,7 +250,7 @@ var ViewModel = function() {
 	// Generate html strings in all the api objects for the given marker.
 	// When these html strings update, the infoWindowContent variable will update
 	// with all the appropriate data.
-	this.updateInfoWindowContent = function(marker) {
+	self.updateInfoWindowContent = function(marker) {
 		var park = self.getParkForMarker(marker);
 		self.currentPark(park.name);
 		var apiList = self.model().apiList();
@@ -287,7 +288,7 @@ var ViewModel = function() {
 	});
 
 	// Callback function after requesting Google map .js file
-	this.initMap = function() {
+	self.initMap = function() {
 		self.map = new google.maps.Map(document.getElementById('map'), {
 			mapTypeControlOptions: {position: google.maps.ControlPosition.TOP_RIGHT}
 		});
@@ -297,7 +298,7 @@ var ViewModel = function() {
 		google.maps.event.addListener(self.map, 'zoom_changed', function() {
 		    var listener = 
 		        google.maps.event.addListener(self.map, 'bounds_changed', function(event) {
-		            if (this.getZoom() < self.minZoom) {
+		            if (self.getZoom() < self.minZoom) {
 		                self.adjustBounds();
 		            }
 		        google.maps.event.removeListener(listener);
@@ -325,13 +326,13 @@ var ViewModel = function() {
 	};
 
 	// Find appropriate bounds to fit data and change map bounds
-	this.adjustBounds = function() {
+	self.adjustBounds = function() {
 		var bounds = self.model().bounds();
 		self.map.fitBounds(bounds);
 	};
 
 	// Remove all markers from the map
-	this.removeAllMarkers = function() {
+	self.removeAllMarkers = function() {
 		for (var marker in self.markers) {
 			if (self.markers.hasOwnProperty(marker)) {
 				self.markers[marker].setMap(null);				
@@ -341,7 +342,7 @@ var ViewModel = function() {
 	};
 
 	// Create a marker for the map
-	this.createMarker = function(title, lat, long) {
+	self.createMarker = function(title, lat, long) {
 		var marker = new google.maps.Marker({
 			title: title,
 			position: new google.maps.LatLng(lat, long),
@@ -357,7 +358,7 @@ var ViewModel = function() {
 	};
 
 	// Find filtered parks and create all markers for them
-	this.createMarkers = function(filteredParks) {
+	self.createMarkers = function(filteredParks) {
 		for (var i in filteredParks) {
 			if (filteredParks.hasOwnProperty(i)) {
 				var park = filteredParks[i];
@@ -367,7 +368,7 @@ var ViewModel = function() {
 	};
 
 	// React to when a park is selected in the nav menu list
-	this.parkSelected = function(park) {
+	self.parkSelected = function(park) {
 		var marker = self.getMarkerForPark(park);
 		if (window.screen.width < 600) {
 			self.menuClicked();
@@ -376,14 +377,14 @@ var ViewModel = function() {
 	};
 
 	// React to when a marker is selected on the map
-	this.markerSelected = function(marker) {
+	self.markerSelected = function(marker) {
 		self.bounceMarker(marker);
 		self.updateInfoWindowContent(marker);		
 		self.infoWindow.open(self.map, marker);
 	};
 
 	// Get the correct equivalent marker for a given park
-	this.getMarkerForPark = function(park) {
+	self.getMarkerForPark = function(park) {
 		for (var i in self.markers) {
 			if (self.markers[i].title == park.name) {
 				return self.markers[i];
@@ -392,7 +393,7 @@ var ViewModel = function() {
 	};
 
 	// Get the correct equivalent park for a given marker
-	this.getParkForMarker = function(marker) {
+	self.getParkForMarker = function(marker) {
 		var parkList = self.model().parkList();
 		for (var i in parkList) {
 			if (parkList[i].name == marker.title) {
@@ -402,13 +403,13 @@ var ViewModel = function() {
 	};
 
 	// Animate the map marker to bounce
-	this.bounceMarker = function(marker) {
+	self.bounceMarker = function(marker) {
 		marker.setAnimation(google.maps.Animation.BOUNCE);
 		setTimeout(function(){ marker.setAnimation(null); }, 750);
 	};
 
 	// Animate the nav menu hiding and showing
-	this.menuClicked = function() {
+	self.menuClicked = function() {
 		self.menuCollapsed(!self.menuCollapsed());
 	};
 
