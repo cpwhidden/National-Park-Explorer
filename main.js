@@ -103,7 +103,7 @@ var apis = [new API('Flickr', true, 'images/flickr.png', 'location', function(la
 							var server = data.photos.photo[i].server;
 							var id = data.photos.photo[i].id;
 							var secret = data.photos.photo[i].secret;
-							html += '<img src=https://farm' + farm + '.staticflickr.com/' + server + '/' + id + '_' + secret + '.jpg</img>';
+							html += '<img src="https://farm' + farm + '.staticflickr.com/' + server + '/' + id + '_' + secret + '.jpg"></img>';
 						}
 					} else {
 						html += '<h3>No Flickr results</h3>';
@@ -206,15 +206,13 @@ var Model = function() {
 		}
 		var lats = [];
 		var longs = [];
-		for (var i in list) {
-			if (list.hasOwnProperty(i)) {
-				lats.push(list[i].lat);
-				longs.push(list[i].long);
-			}
-		}
+		list.forEach(function(elem) {
+			lats.push(elem.lat);
+			longs.push(elem.long);
+		});
 
 		// Extend latitude and longitude by one degree in each direction to give a margin on the map
-		var bounds = {west: Math.min.apply(null, longs) - 1, east: Math.max.apply(null, longs) + 1, north: Math.max.apply(null, lats) + 1, south: Math.min.apply(null, lats) - 1};
+		var bounds = {sw: { lat: Math.min.apply(null, lats) - 1, lng: Math.min.apply(null, longs) - 1 }, ne: { lat: Math.max.apply(null, lats) + 1, lng: Math.max.apply(null, longs) + 1 }};
 		return bounds;
 	});
 	self.selectedResultIndex = ko.observable(null);
@@ -228,21 +226,25 @@ var ViewModel = function() {
 	self.model = ko.observable(new Model());
 	self.currentPark = ko.observable(null);	
 	self.markers = [];
-	self.minZoom = 2;
+	self.minZoom = 1;
 	self.menuCollapsed = ko.observable(false);
+	// Most linters will claim that these variables are never used, but that's not true.
+	// Linters probably claim this because my code never directly assigns a value to them.
+	// However these variable are used in arguments for the Google Maps API.
+	// The Google Maps API assigns an object to each of these variables.
 	var map, infoWindow;
 
 	// Find all content that needs to go in the infoWindow
 	self.infoWindowContent = ko.pureComputed(function() {
 		var htmlString = '<div id="info-window-content"><h1 class="park-info-window-title">' + self.currentPark() + '<small>National Park</small></h1>';
 		var apiList = self.model().apiList();
-		for (var api in apiList) {
-			if (apiList[api].enabled() === true) {
+		apiList.forEach(function(api) {
+			if (api.enabled() === true) {
 				htmlString += '<div class="api-item info-window-container">';
-				htmlString += apiList[api].htmlString();
+				htmlString += api.htmlString();
 				htmlString += '</div>';
 			}
-		}
+		});
 		htmlString += '</div>';
 		return htmlString;
 	});
@@ -251,34 +253,31 @@ var ViewModel = function() {
 	// When these html strings update, the infoWindowContent variable will update
 	// with all the appropriate data.
 	self.updateInfoWindowContent = function(marker) {
-		var park = self.getParkForMarker(marker);
+		var park = this.getParkForMarker(marker);
 		self.currentPark(park.name);
 		var apiList = self.model().apiList();
-		for (var api in apiList) {
-			if (apiList.hasOwnProperty(api)) {
-				var currentAPI = apiList[api];
-				var key, defHTML;
-				if (currentAPI.requestParamType == 'location') {
-					key = park.lat + '$' + park.long;
-					if (currentAPI.cache[key]) {
-						currentAPI.htmlString(currentAPI.cache[key]);
-					} else if (!currentAPI.requestTokens[key]) {
-						defHTML = currentAPI.defaultHTML;
-						currentAPI.htmlString(defHTML);
-						currentAPI.request(park.lat, park.long);
-					}
-				} else if (currentAPI.requestParamType == 'name') {
-					key = park.name;				
-					if (currentAPI.cache[key]) {
-						currentAPI.htmlString(currentAPI.cache[key]);
-				 	} else if (!currentAPI.requestTokens[key]) {
-				 		defHTML = currentAPI.defaultHTML;
-						currentAPI.htmlString(defHTML);
-						currentAPI.request(park.name);
-					}
-				}				
-			}
-		}
+		apiList.forEach(function(api) {
+			var key, defHTML;
+			if (api.requestParamType == 'location') {
+				key = park.lat + '$' + park.long;
+				if (api.cache[key]) {
+					api.htmlString(api.cache[key]);
+				} else if (!api.requestTokens[key]) {
+					defHTML = api.defaultHTML;
+					api.htmlString(defHTML);
+					api.request(park.lat, park.long);
+				}
+			} else if (api.requestParamType == 'name') {
+				key = park.name;				
+				if (api.cache[key]) {
+					api.htmlString(api.cache[key]);
+			 	} else if (!api.requestTokens[key]) {
+			 		defHTML = api.defaultHTML;
+					api.htmlString(defHTML);
+					api.request(park.name);
+				}
+			}				
+		});
 	};
 
 	// When the infoWindowContent variable changes, automatically
@@ -298,7 +297,7 @@ var ViewModel = function() {
 		google.maps.event.addListener(self.map, 'zoom_changed', function() {
 		    var listener = 
 		        google.maps.event.addListener(self.map, 'bounds_changed', function(event) {
-		            if (self.getZoom() < self.minZoom) {
+		            if (this.getZoom() < self.minZoom) {
 		                self.adjustBounds();
 		            }
 		        google.maps.event.removeListener(listener);
@@ -328,16 +327,15 @@ var ViewModel = function() {
 	// Find appropriate bounds to fit data and change map bounds
 	self.adjustBounds = function() {
 		var bounds = self.model().bounds();
-		self.map.fitBounds(bounds);
+		var apiBounds = new google.maps.LatLngBounds(bounds.sw, bounds.ne);
+		self.map.fitBounds(apiBounds);
 	};
 
 	// Remove all markers from the map
 	self.removeAllMarkers = function() {
-		for (var marker in self.markers) {
-			if (self.markers.hasOwnProperty(marker)) {
-				self.markers[marker].setMap(null);				
-			}
-		}
+		self.markers.forEach(function(marker) {
+			marker.setMap(null);				
+		})
 		self.markers = [];
 	};
 
@@ -359,12 +357,9 @@ var ViewModel = function() {
 
 	// Find filtered parks and create all markers for them
 	self.createMarkers = function(filteredParks) {
-		for (var i in filteredParks) {
-			if (filteredParks.hasOwnProperty(i)) {
-				var park = filteredParks[i];
-				self.createMarker(park.name, park.lat, park.long);				
-			}
-		}
+		filteredParks.forEach(function(park) {
+			self.createMarker(park.name, park.lat, park.long);				
+		});
 	};
 
 	// React to when a park is selected in the nav menu list
@@ -379,13 +374,13 @@ var ViewModel = function() {
 	// React to when a marker is selected on the map
 	self.markerSelected = function(marker) {
 		self.bounceMarker(marker);
-		self.updateInfoWindowContent(marker);		
+		self.updateInfoWindowContent(marker);
 		self.infoWindow.open(self.map, marker);
 	};
 
 	// Get the correct equivalent marker for a given park
 	self.getMarkerForPark = function(park) {
-		for (var i in self.markers) {
+		for (var i = 0; i < self.markers.length; i++) {
 			if (self.markers[i].title == park.name) {
 				return self.markers[i];
 			}
@@ -395,7 +390,7 @@ var ViewModel = function() {
 	// Get the correct equivalent park for a given marker
 	self.getParkForMarker = function(marker) {
 		var parkList = self.model().parkList();
-		for (var i in parkList) {
+		for (var i = 0; i < parkList.length; i++) {
 			if (parkList[i].name == marker.title) {
 				return parkList[i];
 			}
@@ -443,6 +438,10 @@ var ViewModel = function() {
 		document.getElementById('filter-menu').style.display = 'none';
 		self.menuCollapsed(true);
 	}
+
+	$('#flickr-photos img').onload = function() {
+		self.infoWindow.open(self.map);
+	}
 };
 
 // Initialize ViewModel
@@ -450,7 +449,6 @@ var vm = new ViewModel();
 
 // Apply Knockout bindings
 ko.applyBindings(vm);
-
 
 // Icon credits:
 // Flickr icon: http://lopagof.deviantart.com/art/Flickr-icons-scalable-85495940
