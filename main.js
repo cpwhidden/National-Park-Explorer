@@ -335,7 +335,7 @@ var ViewModel = function() {
 	self.removeAllMarkers = function() {
 		self.markers.forEach(function(marker) {
 			marker.setMap(null);				
-		})
+		});
 		self.markers = [];
 	};
 
@@ -440,7 +440,7 @@ var ViewModel = function() {
 
 	$('#flickr-photos img').onload = function() {
 		self.infoWindow.open(self.map);
-	}
+	};
 };
 
 // Initialize ViewModel
